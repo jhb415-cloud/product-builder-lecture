@@ -1,1 +1,172 @@
-/* Add styles here */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --primary: #e63946;
+  --primary-dark: #c1121f;
+  --bg: #f8f9fa;
+  --card-bg: #ffffff;
+  --text: #212529;
+  --muted: #6c757d;
+  --radius: 16px;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px 40px;
+}
+
+.container {
+  width: 100%;
+  max-width: 480px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+h1 {
+  font-size: clamp(1.6rem, 5vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+
+.subtitle {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.btn-generate {
+  display: block;
+  width: 100%;
+  padding: 18px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 4px 14px rgba(230, 57, 70, 0.4);
+}
+
+.btn-generate:hover {
+  background: var(--primary-dark);
+}
+
+.btn-generate:active {
+  transform: scale(0.98);
+}
+
+.hidden {
+  display: none;
+}
+
+.results {
+  margin-top: 28px;
+}
+
+.set-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 16px;
+  animation: slideUp 0.3s ease both;
+}
+
+.set-card:nth-child(1) { animation-delay: 0.05s; }
+.set-card:nth-child(2) { animation-delay: 0.10s; }
+.set-card:nth-child(3) { animation-delay: 0.15s; }
+.set-card:nth-child(4) { animation-delay: 0.20s; }
+.set-card:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.set-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+
+.balls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ball {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* 로또 번호대별 색상 */
+.ball.r1  { background: #f4a628; } /* 1-10  노랑 */
+.ball.r2  { background: #4b89dc; } /* 11-20 파랑 */
+.ball.r3  { background: #e63946; } /* 21-30 빨강 */
+.ball.r4  { background: #666;    } /* 31-40 회색 */
+.ball.r5  { background: #5cb85c; } /* 41-45 초록 */
+
+.set-meta {
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-regenerate {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px;
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-regenerate:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+footer {
+  text-align: center;
+  margin-top: 36px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
