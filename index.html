@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4825324689294427"
+     crossorigin="anonymous"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>동물상 테스트 & 로또 생성기</title>
@@ -51,6 +53,18 @@
       font-weight: 800;
       margin-top: 20px;
       color: var(--primary);
+      line-height: 1.4;
+    }
+    .result-explain {
+      font-size: 1rem;
+      color: var(--text);
+      margin-top: 12px;
+      padding: 16px;
+      background: #f0f0f0;
+      border-radius: 12px;
+      line-height: 1.6;
+      word-break: keep-all;
+      display: none;
     }
     .model-status {
       font-size: 0.8rem;
@@ -95,6 +109,7 @@
         </div>
         <div id="loading" class="loading-spinner"></div>
         <div id="label-container" class="result-message"></div>
+        <div id="result-explain" class="result-explain"></div>
       </section>
 
       <hr style="margin: 60px 0; border: 0; border-top: 1px solid #ddd;">
@@ -191,6 +206,7 @@
         
         document.getElementById('loading').style.display = 'block';
         document.getElementById("label-container").innerHTML = "";
+        document.getElementById("result-explain").style.display = 'none';
         
         // 모델이 아직 로딩 중이라면 대기
         if (!model) {
@@ -217,8 +233,32 @@
       const result = prediction[0].className;
       const prob = Math.round(prediction[0].probability * 100);
       
-      let emoji = (result === '강아지' || result === 'dog') ? '🐶' : '🐱';
-      document.getElementById("label-container").innerHTML = `${emoji} 당신은 ${prob}% 확률로 ${result}상입니다!`;
+      const isDog = result === '강아지' || result === 'dog';
+      let emoji = isDog ? '🐶' : '🐱';
+      
+      const explainEl = document.getElementById("result-explain");
+      const labelEl = document.getElementById("label-container");
+      
+      labelEl.innerHTML = `${emoji} 당신은 ${prob}% 확률로 ${isDog ? '강아지' : '고양이'}상입니다!`;
+      
+      const explanations = {
+        dog: [
+          "초롱초롱한 눈망울과 다정한 분위기를 가지셨네요! 보는 사람마저 기분 좋게 만드는 긍정 에너지가 넘쳐납니다. 누구에게나 사랑받는 '인싸' 기질이 다분하시군요!",
+          "충성심 강하고 정이 많은 강아지처럼, 주변 사람들을 잘 챙기는 따뜻한 마음씨의 소유자시네요. 꼬리를 살랑이는 강아지처럼 귀여운 매력이 뿜뿜!",
+          "활발하고 에너지가 넘치는 당신! 주변에 항상 웃음꽃을 피우는 매력쟁이시네요. 당신의 밝은 미소는 모두를 행복하게 만드는 마법이 있어요."
+        ],
+        cat: [
+          "도도하면서도 신비로운 분위기가 매력적이시네요! 처음엔 차가워 보일 수 있지만, 알면 알수록 빠져드는 '츤데레' 같은 매력을 가지셨군요. 당신의 눈빛에 다들 심쿵!",
+          "조용하면서도 자기 주관이 뚜렷한 고양이처럼, 독립심 강하고 세련된 이미지를 풍기시네요. 가끔 보여주는 의외의 애교가 사람들을 무장해제 시킵니다.",
+          "차분하고 지적인 매력이 넘치는 당신! 혼자만의 시간도 즐길 줄 아는 여유로운 모습이 고양이와 꼭 닮았어요. 당신의 깊은 눈매에 신비로움이 가득하네요."
+        ]
+      };
+      
+      const list = isDog ? explanations.dog : explanations.cat;
+      const randomExplain = list[Math.floor(Math.random() * list.length)];
+      
+      explainEl.innerHTML = randomExplain;
+      explainEl.style.display = 'block';
     }
   </script>
   <script src="main.js"></script>
