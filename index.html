@@ -21,10 +21,23 @@
       border: 2px dashed #ddd;
       border-radius: var(--radius);
       cursor: pointer;
-      transition: border-color 0.2s;
+      transition: all 0.2s;
+      background: #fafafa;
+      position: relative;
     }
     .upload-area:hover {
       border-color: var(--primary);
+      background: #fff5f5;
+    }
+    .btn-select-photo {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 10px 20px;
+      background: var(--text);
+      color: #fff;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
     }
     #image-preview {
       max-width: 100%;
@@ -38,6 +51,11 @@
       font-weight: 800;
       margin-top: 20px;
       color: var(--primary);
+    }
+    .model-status {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 10px;
     }
     .loading-spinner {
       display: none;
@@ -60,13 +78,18 @@
     <header>
       <h1>🐶 동물상 테스트</h1>
       <p class="subtitle">나와 닮은 동물은 강아지? 고양이?</p>
+      <div id="model-status" class="model-status">AI 모델을 준비하고 있습니다...</div>
     </header>
 
     <main>
       <!-- 동물상 테스트 섹션 -->
       <section class="animal-test-section">
-        <div class="upload-area" onclick="document.getElementById('file-input').click()">
-          <p id="upload-label">📸 사진을 업로드하거나 찍어주세요</p>
+        <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+          <div id="upload-content">
+            <p style="font-size: 2rem; margin-bottom: 8px;">📸</p>
+            <p>사진을 업로드하거나 찍어주세요</p>
+            <span class="btn-select-photo">사진 선택하기</span>
+          </div>
           <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
           <img id="image-preview" src="#" alt="Preview">
         </div>
@@ -131,15 +154,29 @@
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
   <script>
     const URL = "https://teachablemachine.withgoogle.com/models/D3tN8Adax/";
-    let model, labelContainer, maxPredictions;
+    let model, maxPredictions;
 
+    // 페이지 로드 시 모델 미리 로드
     async function init() {
-      const modelURL = URL + "model.json";
-      const metadataURL = URL + "metadata.json";
-      model = await tmImage.load(modelURL, metadataURL);
-      maxPredictions = model.getTotalClasses();
-      labelContainer = document.getElementById("label-container");
+      try {
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
+        const statusEl = document.getElementById('model-status');
+        if (statusEl) {
+          statusEl.innerHTML = "✅ AI 모델 준비 완료";
+          statusEl.style.color = "#5cb85c";
+        }
+      } catch (e) {
+        console.error("모델 로딩 실패:", e);
+        const statusEl = document.getElementById('model-status');
+        if (statusEl) statusEl.innerHTML = "⚠️ AI 모델을 불러오지 못했습니다.";
+      }
     }
+    
+    // 즉시 실행
+    init();
 
     async function handleImageUpload(event) {
       const file = event.target.files[0];
@@ -150,14 +187,25 @@
         const img = document.getElementById('image-preview');
         img.src = e.target.result;
         img.style.display = 'block';
-        document.getElementById('upload-label').style.display = 'none';
+        document.getElementById('upload-content').style.display = 'none';
         
         document.getElementById('loading').style.display = 'block';
-        labelContainer.innerHTML = "";
+        document.getElementById("label-container").innerHTML = "";
         
-        if (!model) await init();
-        await predict(img);
-        document.getElementById('loading').style.display = 'none';
+        // 모델이 아직 로딩 중이라면 대기
+        if (!model) {
+          document.getElementById("label-container").innerHTML = "모델 로딩 중...";
+          let checkInterval = setInterval(async () => {
+            if (model) {
+              clearInterval(checkInterval);
+              await predict(img);
+              document.getElementById('loading').style.display = 'none';
+            }
+          }, 500);
+        } else {
+          await predict(img);
+          document.getElementById('loading').style.display = 'none';
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -170,7 +218,7 @@
       const prob = Math.round(prediction[0].probability * 100);
       
       let emoji = (result === '강아지' || result === 'dog') ? '🐶' : '🐱';
-      labelContainer.innerHTML = `${emoji} 당신은 ${prob}% 확률로 ${result}상입니다!`;
+      document.getElementById("label-container").innerHTML = `${emoji} 당신은 ${prob}% 확률로 ${result}상입니다!`;
     }
   </script>
   <script src="main.js"></script>
