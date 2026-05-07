@@ -3,17 +3,83 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>로또 번호 생성기</title>
+  <title>동물상 테스트 & 로또 생성기</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* 동물상 테스트 섹션 스타일 */
+    .animal-test-section {
+      margin-top: 48px;
+      padding: 32px 20px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .upload-area {
+      margin: 24px 0;
+      padding: 40px;
+      border: 2px dashed #ddd;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .upload-area:hover {
+      border-color: var(--primary);
+    }
+    #image-preview {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 8px;
+      display: none;
+      margin: 0 auto 20px;
+    }
+    .result-message {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-top: 20px;
+      color: var(--primary);
+    }
+    .loading-spinner {
+      display: none;
+      margin: 20px auto;
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>🎱 로또 번호 생성기</h1>
-      <p class="subtitle">균형 잡힌 번호 조합 5세트 자동 생성</p>
+      <h1>🐶 동물상 테스트</h1>
+      <p class="subtitle">나와 닮은 동물은 강아지? 고양이?</p>
     </header>
 
     <main>
+      <!-- 동물상 테스트 섹션 -->
+      <section class="animal-test-section">
+        <div class="upload-area" onclick="document.getElementById('file-input').click()">
+          <p id="upload-label">📸 사진을 업로드하거나 찍어주세요</p>
+          <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
+          <img id="image-preview" src="#" alt="Preview">
+        </div>
+        <div id="loading" class="loading-spinner"></div>
+        <div id="label-container" class="result-message"></div>
+      </section>
+
+      <hr style="margin: 60px 0; border: 0; border-top: 1px solid #ddd;">
+
+      <header>
+        <h1>🎱 로또 번호 생성기</h1>
+        <p class="subtitle">균형 잡힌 번호 조합 5세트 자동 생성</p>
+      </header>
       <button id="generateBtn" class="btn-generate">번호 생성하기</button>
 
       <section id="results" class="results hidden">
@@ -46,29 +112,67 @@
       <h3 style="text-align: center; margin-bottom: 24px;">💬 댓글</h3>
       <div id="disqus_thread"></div>
       <script>
-          /**
-          *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
-          *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
-          /*
-          var disqus_config = function () {
-          this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
-          this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
-          };
-          */
-          (function() { // DON'T EDIT BELOW THIS LINE
+          (function() {
           var d = document, s = d.createElement('script');
           s.src = 'https://productbuilder-dyw90mxwxh.disqus.com/embed.js';
           s.setAttribute('data-timestamp', +new Date());
           (d.head || d.body).appendChild(s);
           })();
       </script>
-      <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
     </section>
 
     <footer>
       <p>합계 90~150 · 홀짝 균형 · 연속 최대 1쌍 · 구간 분산</p>
     </footer>
   </div>
+
+  <!-- Teachable Machine Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <script>
+    const URL = "https://teachablemachine.withgoogle.com/models/D3tN8Adax/";
+    let model, labelContainer, maxPredictions;
+
+    async function init() {
+      const modelURL = URL + "model.json";
+      const metadataURL = URL + "metadata.json";
+      model = await tmImage.load(modelURL, metadataURL);
+      maxPredictions = model.getTotalClasses();
+      labelContainer = document.getElementById("label-container");
+    }
+
+    async function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const img = document.getElementById('image-preview');
+        img.src = e.target.result;
+        img.style.display = 'block';
+        document.getElementById('upload-label').style.display = 'none';
+        
+        document.getElementById('loading').style.display = 'block';
+        labelContainer.innerHTML = "";
+        
+        if (!model) await init();
+        await predict(img);
+        document.getElementById('loading').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function predict(imageElement) {
+      const prediction = await model.predict(imageElement);
+      prediction.sort((a, b) => b.probability - a.probability);
+      
+      const result = prediction[0].className;
+      const prob = Math.round(prediction[0].probability * 100);
+      
+      let emoji = (result === '강아지' || result === 'dog') ? '🐶' : '🐱';
+      labelContainer.innerHTML = `${emoji} 당신은 ${prob}% 확률로 ${result}상입니다!`;
+    }
+  </script>
   <script src="main.js"></script>
 </body>
 </html>
